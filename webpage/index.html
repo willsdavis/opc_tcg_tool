@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Piece Card Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .search-container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .error {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .card-id {
+            background-color: #eee;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>One Piece Card Search</h1>
+    
+    <div class="search-container">
+        <label for="product-name">Product Name:</label>
+        <input type="text" id="product-name" placeholder="e.g. Shanks (004)">
+        
+        <label for="card-number">Card Number:</label>
+        <input type="text" id="card-number" placeholder="e.g. OP09-004">
+        
+        <button id="search-button">Search</button>
+    </div>
+    
+    <div class="results" id="results-container">
+        <!-- Results will be displayed here -->
+    </div>
+    
+    <script>
+        document.getElementById('search-button').addEventListener('click', async () => {
+            const productName = document.getElementById('product-name').value;
+            const cardNumber = document.getElementById('card-number').value;
+            const resultsContainer = document.getElementById('results-container');
+            
+            if (!productName || !cardNumber) {
+                resultsContainer.innerHTML = '<p class="error">Please enter both product name and card number.</p>';
+                return;
+            }
+            
+            resultsContainer.innerHTML = '<p>Searching...</p>';
+            
+            try {
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        product_name: productName,
+                        card_number: cardNumber
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.results.length > 0) {
+                        let html = '<h2>Search Results:</h2>';
+                        data.results.forEach(result => {
+                            html += `<div class="card-id">TCGplayer ID: ${result.id}</div>`;
+                        });
+                        resultsContainer.innerHTML = html;
+                    } else {
+                        resultsContainer.innerHTML = '<p>No cards found matching your search criteria.</p>';
+                    }
+                } else {
+                    resultsContainer.innerHTML = `<p class="error">Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                resultsContainer.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
